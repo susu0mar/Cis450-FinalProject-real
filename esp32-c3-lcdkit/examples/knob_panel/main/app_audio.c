@@ -66,6 +66,18 @@ esp_err_t audio_handle_info(PDM_SOUND_TYPE voice)
     case SOUND_TYPE_FACTORY:
         sprintf(filepath, "%s/%s", CONFIG_BSP_SPIFFS_MOUNT_POINT, "factory.mp3");
         break;
+    case SOUND_TYPE_BRIGHTNESS_25:
+        sprintf(filepath, "%s/%s", CONFIG_BSP_SPIFFS_MOUNT_POINT, "Cis450-FinalProject-real/esp32-c3-lcdkit/examples/knob_panel/spiffs/25 percent brightnes.mp3");
+        break;
+    case SOUND_TYPE_BRIGHTNESS_50:
+        sprintf(filepath, "%s/%s", CONFIG_BSP_SPIFFS_MOUNT_POINT, "Cis450-FinalProject-real/esp32-c3-lcdkit/examples/knob_panel/spiffs/50 percent brightnes.mp3");
+        break;
+    case SOUND_TYPE_BRIGHTNESS_75:
+        sprintf(filepath, "%s/%s", CONFIG_BSP_SPIFFS_MOUNT_POINT, "Cis450-FinalProject-real/esp32-c3-lcdkit/examples/knob_panel/spiffs/75 percent brightnes.mp3");
+        break;
+    case SOUND_TYPE_BRIGHTNESS_100:
+        sprintf(filepath, "%s/%s", CONFIG_BSP_SPIFFS_MOUNT_POINT, "Cis450-FinalProject-real/esp32-c3-lcdkit/examples/knob_panel/spiffs/100 percent brightne.mp3");
+        break;
     }
 
     FILE *fp = fopen(filepath, "r");
