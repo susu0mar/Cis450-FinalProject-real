@@ -6,10 +6,14 @@
 
 #include "lvgl.h"
 #include <stdio.h>
+#include <time.h>
+#include "src/misc/lv_math.h"
+#include "settings.h"
 
 #include "lv_example_pub.h"
 #include "lv_example_image.h"
 #include "bsp/esp-bsp.h"
+#include "app_audio.h"
 
 static bool light_2color_layer_enter_cb(void *layer);
 static bool light_2color_layer_exit_cb(void *layer);
@@ -176,23 +180,26 @@ static bool light_2color_layer_exit_cb(void *layer)
     return true;
 }
 
-static void light_2color_layer_timer_cb(lv_timer_t *tmr)
-{
+static void light_2color_layer_timer_cb(lv_timer_t *tmr) {
     uint32_t RGB_color = 0xFF;
 
     feed_clock_time();
 
     if (is_time_out(&time_20ms)) {
-
         if ((light_set_conf.light_pwm ^ light_xor.light_pwm) || (light_set_conf.light_cck ^ light_xor.light_cck)) {
             light_xor.light_pwm = light_set_conf.light_pwm;
             light_xor.light_cck = light_set_conf.light_cck;
 
             if (LIGHT_CCK_COOL == light_xor.light_cck) {
-                RGB_color = (0xFF * light_xor.light_pwm / 100) << 16 | (0xFF * light_xor.light_pwm / 100) << 8 | (0xFF * light_xor.light_pwm / 100) << 0;
+                RGB_color = (0xFF * light_xor.light_pwm / 100) << 16 |
+                            (0xFF * light_xor.light_pwm / 100) << 8 |
+                            (0xFF * light_xor.light_pwm / 100) << 0;
             } else {
-                RGB_color = (0xFF * light_xor.light_pwm / 100) << 16 | (0xFF * light_xor.light_pwm / 100) << 8 | (0x33 * light_xor.light_pwm / 100) << 0;
+                RGB_color = (0xFF * light_xor.light_pwm / 100) << 16 |
+                            (0xFF * light_xor.light_pwm / 100) << 8 |
+                            (0x33 * light_xor.light_pwm / 100) << 0;
             }
+
             bsp_led_rgb_set((RGB_color >> 16) & 0xFF, (RGB_color >> 8) & 0xFF, (RGB_color >> 0) & 0xFF);
 
             lv_obj_add_flag(img_light_pwm_100, LV_OBJ_FLAG_HIDDEN);
@@ -210,26 +217,52 @@ static void light_2color_layer_timer_cb(lv_timer_t *tmr)
             uint8_t cck_set = (uint8_t)light_xor.light_cck;
 
             switch (light_xor.light_pwm) {
-            case 100:
-                lv_obj_clear_flag(img_light_pwm_100, LV_OBJ_FLAG_HIDDEN);
-                lv_img_set_src(img_light_pwm_100, light_image.img_pwm_100[cck_set]);
-            case 75:
-                lv_obj_clear_flag(img_light_pwm_75, LV_OBJ_FLAG_HIDDEN);
-                lv_img_set_src(img_light_pwm_75, light_image.img_pwm_75[cck_set]);
-            case 50:
-                lv_obj_clear_flag(img_light_pwm_50, LV_OBJ_FLAG_HIDDEN);
-                lv_img_set_src(img_light_pwm_50, light_image.img_pwm_50[cck_set]);
-            case 25:
-                lv_obj_clear_flag(img_light_pwm_25, LV_OBJ_FLAG_HIDDEN);
-                lv_img_set_src(img_light_pwm_25, light_image.img_pwm_25[cck_set]);
-                lv_img_set_src(img_light_bg, light_image.img_bg[cck_set]);
-                break;
-            case 0:
-                lv_obj_clear_flag(img_light_pwm_0, LV_OBJ_FLAG_HIDDEN);
-                lv_img_set_src(img_light_bg, &light_close_bg);
-                break;
-            default:
-                break;
+                case 100:
+                    lv_obj_clear_flag(img_light_pwm_100, LV_OBJ_FLAG_HIDDEN);
+                    lv_img_set_src(img_light_pwm_100, light_image.img_pwm_100[cck_set]);
+
+                    // Use the parameter from settings
+                    sys_param_t *param = settings_get_parameter();
+                    audio_handle_info((LANGUAGE_CN == param->language) 
+                                      ? SOUND_TYPE_BRIGHTNESS_100 
+                                      : SOUND_TYPE_BRIGHTNESS_100);
+                    break;
+                case 75:
+                    lv_obj_clear_flag(img_light_pwm_75, LV_OBJ_FLAG_HIDDEN);
+                    lv_img_set_src(img_light_pwm_75, light_image.img_pwm_75[cck_set]);
+
+                    
+                    audio_handle_info((LANGUAGE_CN == param->language) 
+                                      ? SOUND_TYPE_BRIGHTNESS_75 
+                                      : SOUND_TYPE_BRIGHTNESS_75);
+                    break;
+                case 50:
+                    lv_obj_clear_flag(img_light_pwm_50, LV_OBJ_FLAG_HIDDEN);
+                    lv_img_set_src(img_light_pwm_50, light_image.img_pwm_50[cck_set]);
+
+                    
+                    audio_handle_info((LANGUAGE_CN == param->language) 
+                                      ? SOUND_TYPE_BRIGHTNESS_50 
+                                      : SOUND_TYPE_BRIGHTNESS_50);
+                    break;
+                case 25:
+                    lv_obj_clear_flag(img_light_pwm_25, LV_OBJ_FLAG_HIDDEN);
+                    lv_img_set_src(img_light_pwm_25, light_image.img_pwm_25[cck_set]);
+                    lv_img_set_src(img_light_bg, light_image.img_bg[cck_set]);
+
+                   
+                    audio_handle_info((LANGUAGE_CN == param->language) 
+                                      ? SOUND_TYPE_BRIGHTNESS_25 
+                                      : SOUND_TYPE_BRIGHTNESS_25);
+                    break;
+                case 0:
+                    lv_obj_clear_flag(img_light_pwm_0, LV_OBJ_FLAG_HIDDEN);
+                    lv_img_set_src(img_light_bg, &light_close_bg);
+                    
+                    //no audio yet for 0%
+                    break;
+                default:
+                    break;
             }
         }
     }
